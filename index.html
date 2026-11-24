@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Публичный сайт на RU VPS с Nginx</title>
+<title>RU VPS: 3x-ui, Nginx и VLESS + REALITY</title>
 <style>
   :root { color-scheme:light; --paper:#f4f6fa; --ink:#172333; --muted:#485a70; --border:#d5dfe9; --blue:#154aa0; }
   * { box-sizing:border-box; }
@@ -27,6 +27,9 @@
   input { max-width:30rem; }
   textarea { min-height:11rem; resize:vertical; font:.88rem/1.5 ui-monospace,Consolas,monospace; }
   code { font:.9em/1.45 ui-monospace,Consolas,monospace; overflow-wrap:anywhere; }
+  table { width:100%; border-collapse:collapse; margin:.9rem 0; }
+  th,td { text-align:left; padding:.5rem .55rem; border-bottom:1px solid var(--border); overflow-wrap:anywhere; }
+  th { background:#edf3fa; }
   .snippet { margin:.8rem 0 1rem; background:#172638; color:#f0f5fb; border-radius:.45rem; overflow:hidden; }
   .snippet-head { display:flex; justify-content:space-between; align-items:center; gap:.5rem; padding:.6rem .75rem; border-bottom:1px solid #465567; font-size:.88rem; }
   button { font:650 .87rem system-ui,sans-serif; color:#12386c; background:#eaf3ff; border:0; padding:.55rem .7rem; border-radius:.3rem; cursor:pointer; }
@@ -42,38 +45,39 @@
 <body>
 <header>
   <div class="wrap">
-    <h1>Сайт на RU VPS с Nginx</h1>
-    <p>Один VPS на Ubuntu 24.04, свой домен и один файл HTML. Nginx принимает HTTP на <strong>80</strong> и HTTPS на <strong>443</strong>.</p>
+    <h1>3x-ui, Nginx и VLESS + REALITY</h1>
+    <p>Один российский VPS на Ubuntu 24.04 и свой домен. На публичном <strong>443</strong> работает вход 3x-ui. Обычный браузер по тому же адресу откроет ваш сайт из Nginx.</p>
     <nav aria-label="Шаги инструкции">
-      <a href="#domain-step">1. Домен</a><a href="#nginx-step">2. Nginx</a><a href="#site-step">3. Ваш HTML</a><a href="#https-step">4. HTTPS</a>
+      <a href="#panel-step">1. 3x-ui</a><a href="#nginx-step">2. Nginx и сайт</a><a href="#reality-step">3. VLESS + REALITY</a>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
-  <section id="domain-step">
-    <h2>1. Направить домен на VPS</h2>
+  <section id="panel-step">
+    <h2>1. Установить 3x-ui</h2>
+    <p>Подключитесь по SSH к RU VPS. Запустите официальный установщик. Для панели выберите отдельный порт, например <code>2053</code>. Вход на <code>443</code> создадим в шаге 3.</p>
+    <div data-command="install-3xui" data-label="RU VPS · установить и запустить 3x-ui"></div>
+    <p class="result"><strong>Дальше, когда:</strong> команда показала <code>active</code>. Сохраните адрес, путь, логин и пароль панели из вывода установщика. Если панель работает без TLS, открывайте её через SSH-туннель.</p>
+  </section>
+
+  <section id="nginx-step">
+    <h2>2. Настроить Nginx и свой сайт</h2>
+    <h3>Направить домен на RU VPS</h3>
     <p>В панели DNS добавьте <strong>A-запись с публичным IPv4 российского VPS</strong>. Для основного домена имя записи обычно <code>@</code>, для поддомена <code>site.my-domain.example</code> — <code>site</code>. Если уже есть запись AAAA, она должна вести на рабочий IPv6 этого же VPS.</p>
     <label for="domain">Ваш домен</label>
     <input id="domain" type="text" placeholder="my-domain.example" spellcheck="false" autocapitalize="none" aria-describedby="domain-hint domain-error">
     <p class="note" id="domain-hint">Введите только имя, без <code>https://</code> и пути. Для кириллицы используйте Punycode. Команды ниже подставят это имя автоматически.</p>
     <p class="alert" id="domain-error" aria-live="polite"></p>
-    <p>Подключитесь к RU VPS по SSH. Здесь и дальше вставляйте команды в это SSH-окно.</p>
     <div data-command="dns" data-label="RU VPS · проверить DNS"></div>
     <p class="result"><strong>Дальше, когда:</strong> команда показала публичный IPv4 вашего RU VPS.</p>
-  </section>
-
-  <section id="nginx-step">
-    <h2>2. Установить Nginx и добавить сайт</h2>
-    <p>Для этой схемы порты <code>80/TCP</code> и <code>443/TCP</code> должны быть свободны под Nginx или уже заняты самим Nginx. Если на них работает другой сервис, сначала выберите, где будет размещаться сайт.</p>
+    <h3>Установить Nginx и добавить HTTP-конфигурацию</h3>
+    <p>Nginx обслуживает публичный <code>80/TCP</code> для сайта и проверки сертификата. Для HTTPS он будет слушать только <code>127.0.0.1:8443</code>. Если эти адреса уже заняты, проверьте процессы перед настройкой.</p>
     <div data-command="install" data-label="RU VPS · установить пакеты и запустить Nginx"></div>
     <p>Проверьте, что установка завершилась строкой <code>active</code>. Затем добавьте конфигурацию для <code data-domain>my-domain.example</code>. Команда создаёт отдельный файл для домена и проверяет синтаксис перед применением.</p>
     <div data-command="nginx" data-label="RU VPS · добавить конфигурацию домена"></div>
     <p class="result"><strong>Дальше, когда:</strong> в выводе Nginx есть <code>syntax is ok</code> и <code>test is successful</code>. Сообщение <code>Config already exists</code> означает, что для этого домена уже есть конфигурация и её нужно проверить перед продолжением.</p>
-  </section>
-
-  <section id="site-step">
-    <h2>3. Поставить свою HTML-страницу</h2>
+    <h3>Поставить свою HTML-страницу</h3>
     <p>Вставьте свой HTML в поле или измените короткий пример. Нажмите «Копировать» под полем и вставьте весь блок в SSH. Он запишет <code>/var/www/<span data-domain>my-domain.example</span>/index.html</code> и сохранит прежний файл в <code>/var/backups</code>, если он был.</p>
     <label for="site-html">HTML вашей страницы</label>
     <textarea id="site-html" wrap="off" spellcheck="false">&lt;!doctype html&gt;
@@ -92,30 +96,51 @@
     <div data-command="site" data-label="RU VPS · сохранить свой index.html"></div>
     <div data-command="http-check" data-label="RU VPS · проверить сайт локально"></div>
     <p class="result"><strong>Дальше, когда:</strong> локальная проверка вернула <code>HTTP 200</code>, а страница открывается по <code>http://<span data-domain>my-domain.example</span>/</code> с другого устройства. Если браузер сам меняет схему на HTTPS, проверьте HTTP в приватном окне или командой <code>curl -I http://ВАШ-ДОМЕН/</code> с компьютера.</p>
+    <h3>Выпустить сертификат и включить локальный HTTPS</h3>
+    <p>Certbot проверит домен через Nginx на <code>80/TCP</code>. При первом запуске он попросит почту и согласие с условиями. После выпуска добавьте отдельную HTTPS-конфигурацию на <code>127.0.0.1:8443</code>.</p>
+    <div data-command="certificate" data-label="RU VPS · выпустить сертификат Let's Encrypt"></div>
+    <div data-command="local-tls" data-label="RU VPS · включить локальный HTTPS Nginx"></div>
+    <div data-command="local-check" data-label="RU VPS · проверить Nginx на локальном 8443"></div>
+    <div data-command="renew" data-label="RU VPS · настроить и проверить автопродление"></div>
+    <p class="result"><strong>Дальше, когда:</strong> локальный тест показал <code>Nginx: HTTP 200</code>. Публичный HTTPS проверим после создания входа.</p>
   </section>
 
-  <section id="https-step">
-    <h2>4. Включить и проверить HTTPS</h2>
-    <p>Certbot выпустит сертификат Let's Encrypt, добавит HTTPS в Nginx и включит переход с HTTP на HTTPS. При первом запуске он попросит почту и согласие с условиями. Для выпуска проверка Let's Encrypt должна достучаться до домена на <code>80/TCP</code>.</p>
-    <div data-command="https" data-label="RU VPS · выпустить сертификат и включить HTTPS"></div>
-    <p>Запустите проверку после успешного выпуска сертификата. Блок также показывает таймер Certbot и проверяет пробное продление.</p>
-    <div data-command="https-check" data-label="RU VPS · проверить HTTPS и продление"></div>
-    <p class="result"><strong>Готово, когда:</strong> вывод начинается с <code>HTTPS 200</code>, пробное продление прошло успешно, а <code>https://<span data-domain>my-domain.example</span>/</code> открывается в браузере с другого устройства.</p>
+  <section id="reality-step">
+    <h2>3. Создать VLESS + REALITY на своём домене</h2>
+    <p>В панели 3x-ui откройте <strong>«Входящие подключения» → «Добавить»</strong>. Укажите параметры из таблицы. Поле <strong>SNI</strong> содержит только доменное имя. Поле <strong>«Цель»</strong> указывает на локальный Nginx.</p>
+    <table>
+      <thead><tr><th>Поле в панели</th><th>Значение</th></tr></thead>
+      <tbody>
+        <tr><td>Протокол</td><td><code>VLESS</code></td></tr>
+        <tr><td>Адрес прослушивания / порт</td><td>Адрес оставить пустым, порт <code>443</code></td></tr>
+        <tr><td>Транспорт</td><td><code>TCP</code> / <code>RAW</code></td></tr>
+        <tr><td>Безопасность</td><td><code>REALITY</code></td></tr>
+        <tr><td>Цель / Target / Dest</td><td><code>127.0.0.1:8443</code></td></tr>
+        <tr><td>SNI / Server Names</td><td><code data-domain>my-domain.example</code></td></tr>
+        <tr><td>Xver</td><td><code>0</code></td></tr>
+        <tr><td>Flow клиента</td><td><code>xtls-rprx-vision</code></td></tr>
+      </tbody>
+    </table>
+    <p>Сгенерируйте ключи REALITY и Short ID. Добавьте клиента и сохраните вход. В экспортированном профиле в поле адреса используйте свой домен <code data-domain>my-domain.example</code> или публичный IP этого VPS. SNI в обоих случаях — <code data-domain>my-domain.example</code>.</p>
+    <p class="note">Оставьте цель <code>127.0.0.1:8443</code>. Цель с вашим доменом на <code>:443</code> вернёт запрос на тот же вход Xray и может вызвать таймаут.</p>
+    <div data-command="check-443" data-label="RU VPS · проверить публичный вход 443 локально"></div>
+    <p class="result"><strong>Готово, когда:</strong> Xray слушает <code>443</code>, тест показывает <code>Через Xray: HTTP 200</code>, а сайт <code>https://<span data-domain>my-domain.example</span>/</code> открывается с другого устройства без VPN. Затем отдельно проверьте подключение с экспортированным VLESS-профилем.</p>
     <details>
       <summary>Если сайт не открывается</summary>
       <ul>
         <li><strong>Открывается стандартная страница Nginx.</strong> Проверьте, что заходите по домену и что IP в шаге 1 совпадает с IP RU VPS.</li>
         <li><strong>Certbot не смог подтвердить домен.</strong> Сначала проверьте DNS и доступность HTTP снаружи. В сообщении Certbot ищите домен и причину отказа.</li>
-        <li><strong>Ошибка <code>address already in use</code>.</strong> Команда ниже покажет процесс на <code>80</code> или <code>443</code>.</li>
+        <li><strong>На 8443 есть ответ, а 443 зависает.</strong> Сверьте цель, SNI и Xver по таблице.</li>
+        <li><strong>Ошибка <code>address already in use</code>.</strong> Команда ниже покажет, какие процессы слушают <code>80</code>, <code>443</code> и <code>8443</code>.</li>
       </ul>
       <div data-command="ports" data-label="RU VPS · проверить порты и конфигурацию"></div>
     </details>
-    <p class="note">Справка по <a href="https://nginx.org/en/docs/http/request_processing.html">конфигурации Nginx</a> и <a href="https://letsencrypt.org/docs/challenge-types/">проверке домена Let's Encrypt</a>.</p>
+    <p class="note">Документация <a href="https://github.com/MHSanaei/3x-ui">3x-ui</a>, <a href="https://nginx.org/en/docs/http/request_processing.html">Nginx</a>, <a href="https://letsencrypt.org/docs/challenge-types/">Let's Encrypt</a> и <a href="https://xtls.github.io/en/config/transports/reality.html">REALITY</a>.</p>
   </section>
   <noscript><p>Включите JavaScript в браузере, чтобы увидеть команды с вашим доменом.</p></noscript>
 </main>
 
-<script type="application/json" id="command-data">{"dns": "getent ahostsv4 '__DOMAIN__'", "install": "sudo apt update &&\nsudo apt install -y nginx curl certbot python3-certbot-nginx &&\nsudo systemctl enable --now nginx &&\nsudo systemctl is-active nginx", "nginx": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'SETUP'\nset -euo pipefail\ndomain=\"$1\"\nsite=\"/var/www/$domain\"\nconfig=\"/etc/nginx/sites-available/$domain\"\nenabled=\"/etc/nginx/sites-enabled/$domain\"\n\nif [ -e \"$config\" ] || [ -L \"$config\" ] || [ -e \"$enabled\" ] || [ -L \"$enabled\" ]; then\n  printf 'Config already exists. Check %s and %s\\n' \"$config\" \"$enabled\" >&2\n  exit 1\nfi\n\ninstall -d -m 0755 \"$site\"\ncat >\"$config\" \u003c\u003cNGINX\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name $domain;\n\n    root $site;\n    index index.html;\n\n    location / {\n        try_files \\$uri \\$uri/ =404;\n    }\n}\nNGINX\nln -s \"$config\" \"$enabled\"\nif ! nginx -t; then\n  rm -f -- \"$enabled\"\n  printf 'Config not activated. Check %s\\n' \"$config\" >&2\n  exit 1\nfi\nsystemctl reload nginx\nSETUP", "site": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'__SETUP_END__'\nset -euo pipefail\nsite=\"/var/www/$1\"\ninstall -d -m 0755 \"$site\" /var/backups\ntmp=\"$(mktemp \"$site/.site-index.XXXXXX\")\"\ntrap 'rm -f -- \"$tmp\"' EXIT\ncat >\"$tmp\" \u003c\u003c'__HTML_END__'\n__SITE_HTML__\n__HTML_END__\nif [ -f \"$site/index.html\" ]; then\n  backup=\"$(mktemp \"/var/backups/$1-index.XXXXXX\")\"\n  cp -p -- \"$site/index.html\" \"$backup\"\n  printf 'Backup: %s\\n' \"$backup\"\nfi\nchmod 0644 \"$tmp\"\nmv -fT -- \"$tmp\" \"$site/index.html\"\nprintf 'Installed: %s\\n' \"$site/index.html\"\n__SETUP_END__", "http-check": "curl --noproxy '*' -fsS --max-time 10 \\\n  --resolve '__DOMAIN__:80:127.0.0.1' \\\n  -o /dev/null -w 'HTTP %{http_code}\\n' \\\n  'http://__DOMAIN__/' ", "https": "sudo certbot --nginx --redirect --cert-name '__DOMAIN__' -d '__DOMAIN__' &&\nsudo nginx -t &&\nsudo systemctl enable --now certbot.timer", "https-check": "curl -fsS --max-time 10 -o /dev/null \\\n  -w 'HTTPS %{http_code}\\n' 'https://__DOMAIN__/' &&\nsudo systemctl list-timers certbot.timer --no-pager &&\nsudo certbot renew --cert-name '__DOMAIN__' --dry-run", "ports": "sudo ss -ltnp '( sport = :80 or sport = :443 )'\nsudo nginx -t"}</script>
+<script type="application/json" id="command-data">{"install-3xui": "(\n  set -e\n  sudo apt update\n  sudo apt install -y ca-certificates curl\n  installer=\"$(mktemp)\"\n  trap 'rm -f -- \"$installer\"' EXIT\n  curl -fsSL https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o \"$installer\"\n  sudo bash \"$installer\"\n  sudo systemctl is-active x-ui\n)", "dns": "getent ahostsv4 '__DOMAIN__'", "install": "sudo apt update &&\nsudo apt install -y nginx curl certbot &&\nsudo systemctl enable --now nginx &&\nsudo systemctl is-active nginx", "nginx": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'SETUP'\nset -euo pipefail\ndomain=\"$1\"\nsite=\"/var/www/$domain\"\nconfig=\"/etc/nginx/sites-available/$domain\"\nenabled=\"/etc/nginx/sites-enabled/$domain\"\n\nif [ -e \"$config\" ] || [ -L \"$config\" ] || [ -e \"$enabled\" ] || [ -L \"$enabled\" ]; then\n  printf 'Config already exists. Check %s and %s\\n' \"$config\" \"$enabled\" >&2\n  exit 1\nfi\n\ninstall -d -m 0755 \"$site/.well-known/acme-challenge\"\ncat >\"$config\" \u003c\u003cNGINX\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name $domain;\n\n    root $site;\n    index index.html;\n\n    location ^~ /.well-known/acme-challenge/ {\n        try_files \\$uri =404;\n    }\n\n    location / {\n        try_files \\$uri \\$uri/ =404;\n    }\n}\nNGINX\nln -s \"$config\" \"$enabled\"\nif ! nginx -t; then\n  rm -f -- \"$enabled\"\n  printf 'Config not activated. Check %s\\n' \"$config\" >&2\n  exit 1\nfi\nsystemctl reload nginx\nSETUP", "site": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'__SETUP_END__'\nset -euo pipefail\nsite=\"/var/www/$1\"\ninstall -d -m 0755 \"$site\" /var/backups\ntmp=\"$(mktemp \"$site/.site-index.XXXXXX\")\"\ntrap 'rm -f -- \"$tmp\"' EXIT\ncat >\"$tmp\" \u003c\u003c'__HTML_END__'\n__SITE_HTML__\n__HTML_END__\nif [ -f \"$site/index.html\" ]; then\n  backup=\"$(mktemp \"/var/backups/$1-index.XXXXXX\")\"\n  cp -p -- \"$site/index.html\" \"$backup\"\n  printf 'Backup: %s\\n' \"$backup\"\nfi\nchmod 0644 \"$tmp\"\nmv -fT -- \"$tmp\" \"$site/index.html\"\nprintf 'Installed: %s\\n' \"$site/index.html\"\n__SETUP_END__", "http-check": "curl --noproxy '*' -fsS --max-time 10 \\\n  --resolve '__DOMAIN__:80:127.0.0.1' \\\n  -o /dev/null -w 'HTTP %{http_code}\\n' \\\n  'http://__DOMAIN__/' ", "certificate": "sudo certbot certonly --webroot \\\n  -w '/var/www/__DOMAIN__' \\\n  --cert-name '__DOMAIN__' -d '__DOMAIN__' ", "local-tls": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'SETUP'\nset -euo pipefail\ndomain=\"$1\"\ncert=\"/etc/letsencrypt/live/$domain\"\nconfig=\"/etc/nginx/sites-available/$domain-local-tls\"\nenabled=\"/etc/nginx/sites-enabled/$domain-local-tls\"\ntest -r \"$cert/fullchain.pem\"\ntest -r \"$cert/privkey.pem\"\n\nif [ -e \"$config\" ] || [ -L \"$config\" ] || [ -e \"$enabled\" ] || [ -L \"$enabled\" ]; then\n  printf 'Config already exists. Check %s and %s\\n' \"$config\" \"$enabled\" >&2\n  exit 1\nfi\n\ncat >\"$config\" \u003c\u003cNGINX\nserver {\n    listen 127.0.0.1:8443 ssl http2;\n    server_name $domain;\n\n    ssl_certificate     $cert/fullchain.pem;\n    ssl_certificate_key $cert/privkey.pem;\n    ssl_protocols TLSv1.2 TLSv1.3;\n\n    root /var/www/$domain;\n    index index.html;\n    location / {\n        try_files \\$uri \\$uri/ =404;\n    }\n}\nNGINX\nln -s \"$config\" \"$enabled\"\nif ! nginx -t; then\n  rm -f -- \"$enabled\"\n  printf 'Config not activated. Check %s\\n' \"$config\" >&2\n  exit 1\nfi\nsystemctl reload nginx\nSETUP", "local-check": "curl --noproxy '*' -fsS --max-time 10 \\\n  --resolve '__DOMAIN__:8443:127.0.0.1' \\\n  -o /dev/null -w 'Nginx: HTTP %{http_code}\\n' \\\n  'https://__DOMAIN__:8443/' ", "renew": "sudo bash \u003c\u003c'SETUP'\nset -euo pipefail\ninstall -d -m 0755 /etc/letsencrypt/renewal-hooks/deploy\ncat >/etc/letsencrypt/renewal-hooks/deploy/reload-site-nginx \u003c\u003c'HOOK'\n#!/bin/sh\nset -eu\nnginx -t\nsystemctl reload nginx\nHOOK\nchmod 0755 /etc/letsencrypt/renewal-hooks/deploy/reload-site-nginx\nsystemctl enable --now certbot.timer\ncertbot renew --cert-name '__DOMAIN__' --dry-run\nSETUP", "check-443": "sudo ss -ltnp '( sport = :443 )'\ncurl --noproxy '*' -fsS --max-time 10 \\\n  --resolve '__DOMAIN__:443:127.0.0.1' \\\n  -o /dev/null -w 'Через Xray: HTTP %{http_code}\\n' \\\n  'https://__DOMAIN__/' ", "ports": "sudo ss -ltnp '( sport = :80 or sport = :443 or sport = :8443 )'\nsudo nginx -t\nsudo systemctl is-active x-ui"}</script>
 <script>
   const commands = JSON.parse(document.querySelector('#command-data').textContent);
   const domain = document.querySelector('#domain');
