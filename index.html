@@ -5,46 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RU VPS: 3x-ui, Nginx и VLESS + REALITY</title>
 <style>
-  :root { color-scheme:light; --paper:#f4f6fa; --ink:#172333; --muted:#485a70; --border:#d5dfe9; --blue:#154aa0; }
+  :root { color-scheme:dark; --paper:#0e0d0c; --surface:#191613; --ink:#fff7ed; --muted:#cbbdb0; --border:#423126; --accent:#ff963e; --glow:#ffb55d; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--paper); color:var(--ink); font:1rem/1.6 system-ui,sans-serif; }
-  header { background:#163455; color:#fff; padding:clamp(2rem,7vw,4rem) 0 2rem; }
+  header { position:relative; overflow:hidden; padding:clamp(1.7rem,6vw,3.5rem) 0 2.15rem; border-bottom:1px solid #793d1c; background:radial-gradient(ellipse at 84% 76%,#84380765,transparent 52%),linear-gradient(124deg,#100e0d 30%,#1d100a 100%); }
+  header::after { position:absolute; right:-10%; bottom:-10.5rem; width:69%; height:13rem; border:2px solid #fa6a22; border-radius:50%; box-shadow:0 0 26px #f96b1d9c,inset 0 0 15px #ed611075; transform:rotate(-12deg); content:""; pointer-events:none; }
+  header .wrap { position:relative; z-index:1; }
   .wrap { width:min(880px,calc(100% - 2rem)); margin:auto; }
   h1 { font-size:clamp(2.25rem,6vw,4.25rem); line-height:1.03; margin:0; letter-spacing:-.055em; }
   h2 { font-size:clamp(1.45rem,4vw,2.05rem); line-height:1.17; margin:0 0 .8rem; letter-spacing:-.025em; }
   h3 { font-size:1.15rem; margin:1.45rem 0 .6rem; }
-  header p { max-width:42rem; margin:1rem 0; color:#e5edf8; }
-  header nav { display:flex; gap:.5rem 1rem; flex-wrap:wrap; margin-top:1.25rem; }
-  header a { color:#fff; }
-  a { color:var(--blue); text-underline-offset:.2em; }
+  header p { max-width:42rem; margin:1rem 0; color:#e8d9cc; }
+  header nav { display:flex; gap:.45rem .65rem; flex-wrap:wrap; margin-top:1.25rem; }
+  header nav a { padding:.3rem .7rem; border:1px solid #6a4029; border-radius:999px; background:#21150f; color:#ffdcc1; font-size:.9rem; text-decoration:none; }
+  header nav a:hover { background:#3e2316; border-color:var(--accent); }
+  .channel-link { display:inline-flex; align-items:center; gap:.55rem; min-height:2.65rem; margin-bottom:1.05rem; padding:.4rem .8rem; border:1px solid #68402c; border-radius:999px; background:#221611; color:var(--ink); font-size:.9rem; font-weight:700; text-decoration:none; }
+  .channel-link:hover { background:#3e2316; border-color:var(--accent); }
+  .channel-link svg { flex:none; width:1.5rem; height:1.06rem; }
+  a { color:var(--glow); text-underline-offset:.2em; }
   main { padding-block:1.4rem 3rem; }
-  section { margin-bottom:1rem; padding:clamp(1rem,4vw,2rem); background:#fff; border:1px solid var(--border); border-radius:.65rem; }
+  section { margin-bottom:1rem; padding:clamp(1rem,4vw,2rem); background:var(--surface); border:1px solid var(--border); border-radius:.65rem; }
   p { margin:.55rem 0; }
   ul,ol { padding-left:1.4rem; }
   li { margin:.32rem 0; }
   label { display:block; margin:.8rem 0 .3rem; font-weight:650; }
-  input,textarea { width:100%; min-width:0; font:inherit; border:1px solid #97a8ba; border-radius:.3rem; padding:.5rem .65rem; }
+  input,textarea { width:100%; min-width:0; font:inherit; border:1px solid #835638; border-radius:.3rem; padding:.5rem .65rem; background:#100e0c; color:var(--ink); }
+  input::placeholder,textarea::placeholder { color:#ae9c8e; }
   input { max-width:30rem; }
   textarea { min-height:11rem; resize:vertical; font:.88rem/1.5 ui-monospace,Consolas,monospace; }
   code { font:.9em/1.45 ui-monospace,Consolas,monospace; overflow-wrap:anywhere; }
   table { width:100%; border-collapse:collapse; margin:.9rem 0; }
   th,td { text-align:left; padding:.5rem .55rem; border-bottom:1px solid var(--border); overflow-wrap:anywhere; }
-  th { background:#edf3fa; }
-  .snippet { margin:.8rem 0 1rem; background:#172638; color:#f0f5fb; border-radius:.45rem; overflow:hidden; }
-  .snippet-head { display:flex; justify-content:space-between; align-items:center; gap:.5rem; padding:.6rem .75rem; border-bottom:1px solid #465567; font-size:.88rem; }
-  button { font:650 .87rem system-ui,sans-serif; color:#12386c; background:#eaf3ff; border:0; padding:.55rem .7rem; border-radius:.3rem; cursor:pointer; }
-  button:hover { background:#fff; }
+  th { background:#322116; }
+  .snippet { margin:.8rem 0 1rem; background:#100e0c; color:#f9eddd; border:1px solid var(--border); border-radius:.45rem; overflow:hidden; }
+  .snippet-head { display:flex; justify-content:space-between; align-items:center; gap:.5rem; padding:.6rem .75rem; border-bottom:1px solid var(--border); font-size:.88rem; }
+  button { font:700 .87rem system-ui,sans-serif; color:#261204; background:var(--accent); border:0; padding:.55rem .7rem; border-radius:.3rem; cursor:pointer; }
+  button:hover { background:var(--glow); }
   pre { margin:0; padding:.85rem; overflow:auto; max-height:25rem; font:.85rem/1.55 ui-monospace,Consolas,monospace; }
   .note { color:var(--muted); font-size:.93rem; }
-  .result { padding:.7rem .9rem; border-left:3px solid #3b7964; background:#edf5ef; }
-  .alert { min-height:1.4em; color:#a52d22; font-size:.92rem; }
+  .result { padding:.7rem .9rem; border-left:3px solid var(--accent); background:#2c1d12; }
+  .alert { min-height:1.4em; color:#ffab96; font-size:.92rem; }
   summary { cursor:pointer; font-weight:650; }
-  :focus-visible { outline:3px solid #b36320; outline-offset:3px; }
+  :focus-visible { outline:3px solid var(--glow); outline-offset:3px; }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
+    <a class="channel-link" href="https://www.youtube.com/channel/UCfKTWnvNx7mfXKoyrQqJdxQ/" aria-label="Полезные советы на YouTube">
+      <svg width="24" height="17" viewBox="0 0 24 17" aria-hidden="true" focusable="false">
+        <rect width="24" height="17" rx="4.5" fill="#ff0033"/>
+        <path d="M9.5 4.25 16 8.5l-6.5 4.25z" fill="#fff"/>
+      </svg>
+      <span>Полезные советы</span>
+    </a>
     <h1>3x-ui, Nginx и VLESS + REALITY</h1>
     <p>Один российский VPS на Ubuntu 24.04 и свой домен. На публичном <strong>443</strong> работает вход 3x-ui. Обычный браузер по тому же адресу откроет ваш сайт из Nginx.</p>
     <nav aria-label="Шаги инструкции">
