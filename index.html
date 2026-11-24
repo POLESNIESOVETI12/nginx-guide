@@ -47,23 +47,6 @@
   .alert { min-height:1.4em; color:#ffab96; font-size:.92rem; }
   summary { cursor:pointer; font-weight:650; }
   :focus-visible { outline:3px solid var(--glow); outline-offset:3px; }
-  header nav button { padding:.3rem .7rem; border:1px solid #9e5428; border-radius:999px; font-size:.9rem; }
-  dialog { width:min(740px,calc(100% - 1.5rem)); max-height:calc(100dvh - 1.5rem); padding:clamp(1rem,4vw,2rem); background:var(--surface); color:var(--ink); border:1px solid #835638; border-radius:.75rem; }
-  dialog::backdrop { background:#090604c9; }
-  #happ-routing input { max-width:none; }
-  #happ-routing select { width:100%; padding:.47rem .6rem; border:1px solid #835638; border-radius:.3rem; background:#100e0c; color:var(--ink); font:inherit; }
-  #happ-routing textarea { min-height:5.4rem; }
-  #happ-routing details { margin-block:.9rem; padding:.7rem .8rem; border:1px solid var(--border); border-radius:.4rem; }
-  .routing-header,.routing-actions { display:flex; align-items:start; gap:.55rem; flex-wrap:wrap; }
-  .routing-header { justify-content:space-between; }
-  .routing-header h2 { margin-bottom:0; }
-  .routing-actions { margin-top:.7rem; }
-  .routing-open { display:inline-block; padding:.55rem .7rem; border-radius:.3rem; background:var(--accent); color:#261204; font:700 .87rem system-ui,sans-serif; text-decoration:none; }
-  .routing-open:hover { background:var(--glow); }
-  .routing-secondary { background:#2c1d12; color:#ffdcc1; border:1px solid #835638; }
-  .routing-secondary:hover { background:#3e2316; }
-  .routing-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.35rem 1rem; }
-  @media(max-width:520px) { .routing-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -80,7 +63,6 @@
     <p>Один российский VPS на Ubuntu 24.04 и свой домен. На публичном <strong>443</strong> работает вход 3x-ui. Обычный браузер по тому же адресу откроет ваш сайт из Nginx.</p>
     <nav aria-label="Шаги инструкции">
       <a href="#panel-step">1. 3x-ui</a><a href="#nginx-step">2. Nginx и сайт</a><a href="#reality-step">3. VLESS + REALITY</a>
-      <button type="button" id="open-happ">Маршрутизация Happ</button>
     </nav>
   </div>
 </header>
@@ -172,64 +154,6 @@
   <noscript><p>Включите JavaScript в браузере, чтобы увидеть команды с вашим доменом.</p></noscript>
 </main>
 
-<dialog id="happ-routing" aria-labelledby="happ-title">
-  <div class="routing-header">
-    <h2 id="happ-title">Маршрутизация Happ</h2>
-    <form method="dialog"><button class="routing-secondary" autofocus>Закрыть</button></form>
-  </div>
-  <p>Добавьте профиль в Happ на том же устройстве, где используете VPN. По умолчанию в туннель идут выбранные сайты, остальные соединения идут напрямую.</p>
-
-  <div class="routing-grid">
-    <label>Название профиля<input id="happ-name" type="text"></label>
-    <label>Трафик без совпадений
-      <select id="happ-mode">
-        <option value="false">Напрямую</option>
-        <option value="true">Через VPN</option>
-      </select>
-    </label>
-  </div>
-
-  <label for="happ-proxy-sites">Через VPN · ProxySites</label>
-  <p class="note" id="happ-sites-hint">По одному правилу на строку. Для своего сайта укажите <code>domain:example.com</code>. Записи <code>geosite:</code> используют группы из базы Happ.</p>
-  <textarea id="happ-proxy-sites" data-happ-list="ProxySites" aria-describedby="happ-sites-hint" spellcheck="false"></textarea>
-
-  <label for="happ-direct-sites">Напрямую · DirectSites</label>
-  <textarea id="happ-direct-sites" data-happ-list="DirectSites" spellcheck="false"></textarea>
-
-  <details>
-    <summary>Дополнительные правила и параметры</summary>
-    <div class="routing-grid">
-      <label>IP через VPN · ProxyIp<textarea data-happ-list="ProxyIp" spellcheck="false"></textarea></label>
-      <label>IP напрямую · DirectIp<textarea data-happ-list="DirectIp" spellcheck="false"></textarea></label>
-      <label>Блокировать домены · BlockSites<textarea data-happ-list="BlockSites" spellcheck="false"></textarea></label>
-      <label>Блокировать IP · BlockIp<textarea data-happ-list="BlockIp" spellcheck="false"></textarea></label>
-      <label>DNS для туннеля · RemoteDNSDomain<input type="text" data-happ-field="RemoteDNSDomain" spellcheck="false"></label>
-      <label>DNS для прямого выхода · DomesticDNSDomain<input type="text" data-happ-field="DomesticDNSDomain" spellcheck="false"></label>
-      <label>База доменов · Geositeurl<input type="text" data-happ-field="Geositeurl" spellcheck="false"></label>
-      <label>База IP · Geoipurl<input type="text" data-happ-field="Geoipurl" spellcheck="false"></label>
-    </div>
-    <p class="note">Для IP используйте адрес, CIDR или <code>geoip:</code>. Другие параметры можно задать через JSON ниже.</p>
-  </details>
-
-  <details>
-    <summary>Импорт и редактирование JSON</summary>
-    <label for="happ-import">JSON, Base64 или ссылка happ://routing/…</label>
-    <textarea id="happ-import" spellcheck="false"></textarea>
-    <button type="button" id="happ-apply" class="routing-secondary">Применить к форме</button>
-    <label for="happ-json">Текущий JSON</label>
-    <textarea id="happ-json" readonly spellcheck="false"></textarea>
-  </details>
-
-  <div class="routing-actions">
-    <a class="routing-open" id="happ-link">Добавить в Happ</a>
-    <button type="button" class="routing-secondary" id="happ-copy-link">Копировать ссылку</button>
-    <button type="button" class="routing-secondary" id="happ-copy-json">Копировать JSON</button>
-    <button type="button" class="routing-secondary" id="happ-reset">Вернуть пример</button>
-  </div>
-  <p id="happ-status" class="note" role="status"></p>
-  <p class="note">После импорта выберите профиль для нужного подключения и переподключитесь. Для подписок, где правила задаёт провайдер в JSON, Happ может ограничить ручной импорт. <a href="https://www.happ.su/main/dev-docs/routing">Документация Happ</a>.</p>
-</dialog>
-
 <script type="application/json" id="command-data">{"install-3xui": "(\n  set -e\n  sudo apt update\n  sudo apt install -y ca-certificates curl\n  installer=\"$(mktemp)\"\n  trap 'rm -f -- \"$installer\"' EXIT\n  curl -fsSL https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh -o \"$installer\"\n  sudo bash \"$installer\"\n  sudo systemctl is-active x-ui\n)", "dns": "getent ahostsv4 '__DOMAIN__'", "install": "sudo apt update &&\nsudo apt install -y nginx curl certbot &&\nsudo systemctl enable --now nginx &&\nsudo systemctl is-active nginx", "nginx": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'SETUP'\nset -euo pipefail\ndomain=\"$1\"\nsite=\"/var/www/$domain\"\nconfig=\"/etc/nginx/sites-available/$domain\"\nenabled=\"/etc/nginx/sites-enabled/$domain\"\n\nif [ -e \"$config\" ] || [ -L \"$config\" ] || [ -e \"$enabled\" ] || [ -L \"$enabled\" ]; then\n  printf 'Config already exists. Check %s and %s\\n' \"$config\" \"$enabled\" >&2\n  exit 1\nfi\n\ninstall -d -m 0755 \"$site/.well-known/acme-challenge\"\ncat >\"$config\" \u003c\u003cNGINX\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name $domain;\n\n    root $site;\n    index index.html;\n\n    location ^~ /.well-known/acme-challenge/ {\n        try_files \\$uri =404;\n    }\n\n    location / {\n        try_files \\$uri \\$uri/ =404;\n    }\n}\nNGINX\nln -s \"$config\" \"$enabled\"\nif ! nginx -t; then\n  rm -f -- \"$enabled\"\n  printf 'Config not activated. Check %s\\n' \"$config\" >&2\n  exit 1\nfi\nsystemctl reload nginx\nSETUP", "site": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'__SETUP_END__'\nset -euo pipefail\nsite=\"/var/www/$1\"\ninstall -d -m 0755 \"$site\" /var/backups\ntmp=\"$(mktemp \"$site/.site-index.XXXXXX\")\"\ntrap 'rm -f -- \"$tmp\"' EXIT\ncat >\"$tmp\" \u003c\u003c'__HTML_END__'\n__SITE_HTML__\n__HTML_END__\nif [ -f \"$site/index.html\" ]; then\n  backup=\"$(mktemp \"/var/backups/$1-index.XXXXXX\")\"\n  cp -p -- \"$site/index.html\" \"$backup\"\n  printf 'Backup: %s\\n' \"$backup\"\nfi\nchmod 0644 \"$tmp\"\nmv -fT -- \"$tmp\" \"$site/index.html\"\nprintf 'Installed: %s\\n' \"$site/index.html\"\n__SETUP_END__", "http-check": "curl --noproxy '*' -fsS --max-time 10 \\\n  --resolve '__DOMAIN__:80:127.0.0.1' \\\n  -o /dev/null -w 'HTTP %{http_code}\\n' \\\n  'http://__DOMAIN__/' ", "certificate": "sudo certbot certonly --webroot \\\n  -w '/var/www/__DOMAIN__' \\\n  --cert-name '__DOMAIN__' -d '__DOMAIN__' ", "local-tls": "sudo bash -s -- '__DOMAIN__' \u003c\u003c'SETUP'\nset -euo pipefail\ndomain=\"$1\"\ncert=\"/etc/letsencrypt/live/$domain\"\nconfig=\"/etc/nginx/sites-available/$domain-local-tls\"\nenabled=\"/etc/nginx/sites-enabled/$domain-local-tls\"\ntest -r \"$cert/fullchain.pem\"\ntest -r \"$cert/privkey.pem\"\n\nif [ -e \"$config\" ] || [ -L \"$config\" ] || [ -e \"$enabled\" ] || [ -L \"$enabled\" ]; then\n  printf 'Config already exists. Check %s and %s\\n' \"$config\" \"$enabled\" >&2\n  exit 1\nfi\n\ncat >\"$config\" \u003c\u003cNGINX\nserver {\n    listen 127.0.0.1:8443 ssl http2;\n    server_name $domain;\n\n    ssl_certificate     $cert/fullchain.pem;\n    ssl_certificate_key $cert/privkey.pem;\n    ssl_protocols TLSv1.2 TLSv1.3;\n\n    root /var/www/$domain;\n    index index.html;\n    location / {\n        try_files \\$uri \\$uri/ =404;\n    }\n}\nNGINX\nln -s \"$config\" \"$enabled\"\nif ! nginx -t; then\n  rm -f -- \"$enabled\"\n  printf 'Config not activated. Check %s\\n' \"$config\" >&2\n  exit 1\nfi\nsystemctl reload nginx\nSETUP", "local-check": "curl --noproxy '*' -fsS --max-time 10 \\\n  --resolve '__DOMAIN__:8443:127.0.0.1' \\\n  -o /dev/null -w 'Nginx: HTTP %{http_code}\\n' \\\n  'https://__DOMAIN__:8443/' ", "renew": "sudo bash \u003c\u003c'SETUP'\nset -euo pipefail\ninstall -d -m 0755 /etc/letsencrypt/renewal-hooks/deploy\ncat >/etc/letsencrypt/renewal-hooks/deploy/reload-site-nginx \u003c\u003c'HOOK'\n#!/bin/sh\nset -eu\nnginx -t\nsystemctl reload nginx\nHOOK\nchmod 0755 /etc/letsencrypt/renewal-hooks/deploy/reload-site-nginx\nsystemctl enable --now certbot.timer\ncertbot renew --cert-name '__DOMAIN__' --dry-run\nSETUP", "check-443": "sudo ss -ltnp '( sport = :443 )'\ncurl --noproxy '*' -fsS --max-time 10 \\\n  --resolve '__DOMAIN__:443:127.0.0.1' \\\n  -o /dev/null -w 'Через Xray: HTTP %{http_code}\\n' \\\n  'https://__DOMAIN__/' ", "ports": "sudo ss -ltnp '( sport = :80 or sport = :443 or sport = :8443 )'\nsudo nginx -t\nsudo systemctl is-active x-ui"}</script>
 <script>
   const commands = JSON.parse(document.querySelector('#command-data').textContent);
@@ -269,7 +193,7 @@
     const area = document.createElement('textarea');
     area.value = text;
     area.style.cssText = 'position:fixed;left:0;top:0;opacity:0';
-    (document.querySelector('dialog[open]') || document.body).append(area);
+    document.body.append(area);
     area.select();
     try { return document.execCommand('copy'); }
     finally { area.remove(); }
@@ -328,107 +252,6 @@
   domain.addEventListener('input', render);
   html.addEventListener('input', render);
   render();
-
-  const routing = document.querySelector('#happ-routing');
-  const routingName = document.querySelector('#happ-name');
-  const routingMode = document.querySelector('#happ-mode');
-  const routingImport = document.querySelector('#happ-import');
-  const routingJson = document.querySelector('#happ-json');
-  const routingLink = document.querySelector('#happ-link');
-  const routingStatus = document.querySelector('#happ-status');
-  const routingLists = [...routing.querySelectorAll('[data-happ-list]')];
-  const routingFields = [...routing.querySelectorAll('[data-happ-field]')];
-  const starterProfile = {
-    Name: 'Только выбранные сайты через VPN',
-    GlobalProxy: 'false',
-    DirectSites: ['domain:nalog.gov.ru', 'domain:nalog.ru'],
-    ProxySites: [
-      'geosite:youtube', 'geosite:telegram', 'geosite:discord', 'geosite:instagram',
-      'geosite:facebook', 'geosite:twitter', 'geosite:tiktok', 'geosite:openai',
-      'geosite:github', 'domain:twitch.tv', 'domain:ttvnw.net', 'domain:jtvnw.net'
-    ],
-    ProxyIp: []
-  };
-  let routingProfile;
-
-  function renderRouting() {
-    routingJson.value = JSON.stringify(routingProfile, null, 2);
-    const bytes = new TextEncoder().encode(JSON.stringify(routingProfile));
-    let raw = '';
-    for (const byte of bytes) raw += String.fromCharCode(byte);
-    routingLink.href = 'happ://routing/add/' + btoa(raw);
-  }
-
-  function setRoutingProfile(profile) {
-    routingProfile = { ...profile };
-    routingName.value = profile.Name;
-    routingMode.value = String(profile.GlobalProxy) === 'true' ? 'true' : 'false';
-    for (const field of routingLists) {
-      field.value = (profile[field.dataset.happList] ?? []).join('\n');
-    }
-    for (const field of routingFields) field.value = profile[field.dataset.happField] ?? '';
-    renderRouting();
-  }
-
-  routing.addEventListener('input', event => {
-    const field = event.target;
-    if (field === routingName) routingProfile.Name = field.value.trim() || starterProfile.Name;
-    else if (field === routingMode) routingProfile.GlobalProxy = field.value;
-    else if (field.dataset.happList) {
-      routingProfile[field.dataset.happList] = [...new Set(field.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean))];
-    } else if (field.dataset.happField) {
-      routingProfile[field.dataset.happField] = field.value.trim();
-    } else return;
-    routingStatus.textContent = '';
-    renderRouting();
-  });
-
-  document.querySelector('#happ-apply').addEventListener('click', () => {
-    try {
-      const input = routingImport.value.trim();
-      const encoded = input.replace(/^happ:\/\/routing\/(?:onadd|add)\//i, '');
-      const decoded = input.startsWith('{') ? input : new TextDecoder('utf-8', { fatal: true }).decode(
-        Uint8Array.from(atob(decodeURIComponent(encoded).replaceAll('-', '+').replaceAll('_', '/')), char => char.charCodeAt(0))
-      );
-      const profile = JSON.parse(decoded);
-      if (!profile || typeof profile !== 'object' || Array.isArray(profile) ||
-          !['Name', 'GlobalProxy', ...routingLists.map(field => field.dataset.happList)].some(key => Object.hasOwn(profile, key))) {
-        throw new Error();
-      }
-      for (const field of routingLists) {
-        const list = profile[field.dataset.happList];
-        if (list !== undefined && (!Array.isArray(list) || list.some(value => typeof value !== 'string'))) throw new Error();
-      }
-      profile.Name = typeof profile.Name === 'string' && profile.Name.trim() ? profile.Name.trim() : starterProfile.Name;
-      profile.GlobalProxy = String(profile.GlobalProxy) === 'true' ? 'true' : 'false';
-      setRoutingProfile(profile);
-      routingStatus.textContent = 'Профиль загружен в редактор.';
-    } catch {
-      routingStatus.textContent = 'Не удалось прочитать профиль. Проверьте JSON или ссылку Happ.';
-    }
-  });
-
-  document.querySelector('#happ-reset').addEventListener('click', () => {
-    setRoutingProfile(starterProfile);
-    routingImport.value = '';
-    routingStatus.textContent = 'Пример восстановлен.';
-  });
-
-  for (const [id, value, label] of [
-    ['happ-copy-link', () => routingLink.href, 'Ссылка скопирована.'],
-    ['happ-copy-json', () => routingJson.value, 'JSON скопирован.']
-  ]) {
-    document.getElementById(id).addEventListener('click', async () => {
-      try {
-        if (!await copy(value())) throw new Error();
-        routingStatus.textContent = label;
-      } catch {
-        routingStatus.textContent = 'Буфер недоступен. JSON можно выделить в редакторе и скопировать вручную.';
-      }
-    });
-  }
-  document.querySelector('#open-happ').addEventListener('click', () => routing.showModal());
-  setRoutingProfile(starterProfile);
 </script>
 </body>
 </html>
