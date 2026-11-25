@@ -155,8 +155,12 @@
   </section>
   <section id="firewall-step">
     <h2>4. Закрыть лишние порты на RU VPS</h2>
-    <p>Выполняйте, если UFW установлен и SSH работает на порту <code>22/tcp</code>. Если порт панели 3x-ui или другого сервиса нужен снаружи, добавьте его в разрешения до включения UFW.</p>
-    <div data-command="firewall-short" data-label="RU VPS · открыть 22, 80 и 443 TCP"></div>
+    <p>Выполняйте, если UFW установлен и SSH работает на порту <code>22/tcp</code>. Порты <code>22/tcp</code>, <code>80/tcp</code> и <code>443/tcp</code> уже включены в команду.</p>
+    <label for="firewall-ports">Дополнительные порты, в том числе для панели 3x-ui</label>
+    <input id="firewall-ports" type="text" placeholder="52211, 8080/tcp, 8443/udp" spellcheck="false" autocapitalize="none" aria-describedby="firewall-ports-hint firewall-ports-error">
+    <p id="firewall-ports-hint" class="note">Введите порты через запятую или пробел. Если указать только номер, будет использован TCP. Для UDP добавьте <code>/udp</code>. Поле можно оставить пустым.</p>
+    <p id="firewall-ports-error" class="alert" aria-live="polite" hidden></p>
+    <div data-command="firewall-short" data-label="RU VPS · открыть порты и включить UFW"></div>
     <p class="note">Оставьте текущую SSH-сессию открытой и проверьте вход в новом окне. Команда сохраняет ранее добавленные правила UFW.</p>
   </section>
   <noscript><p>Включите JavaScript в браузере, чтобы увидеть команды с вашим доменом.</p></noscript>
@@ -169,6 +173,8 @@
   const html = document.querySelector('#site-html');
   const domainError = document.querySelector('#domain-error');
   const htmlError = document.querySelector('#html-error');
+  const firewallPorts = document.querySelector('#firewall-ports');
+  const firewallPortsError = document.querySelector('#firewall-ports-error');
   const rows = [];
   const host = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
   const reserved = /(?:^|\.)(?:example(?:\.(?:com|net|org))?|invalid|test|localhost)$/i;
@@ -178,7 +184,23 @@
     return host.test(name) && !reserved.test(name) ? name : '';
   }
 
+  function firewallCommand() {
+    const basePorts = new Set(['22/tcp', '80/tcp', '443/tcp']);
+    const extraPorts = new Set();
+
+    for (const entry of firewallPorts.value.split(/[\s,]+/).filter(Boolean)) {
+      const match = /^(\d{1,5})(?:\/(tcp|udp))?$/i.exec(entry);
+      if (!match || Number(match[1]) < 1 || Number(match[1]) > 65535) return '';
+      const port = Number(match[1]) + '/' + (match[2] || 'tcp').toLowerCase();
+      if (!basePorts.has(port)) extraPorts.add(port);
+    }
+
+    const extraRules = [...extraPorts].map(port => 'sudo ufw allow ' + port + ' && ').join('');
+    return commands['firewall-short'].replace('sudo ufw default deny incoming', extraRules + 'sudo ufw default deny incoming') + '\n';
+  }
+
   function command(name) {
+    if (name === 'firewall-short') return firewallCommand();
     let text = commands[name].replaceAll('__DOMAIN__', domainName() || 'my-domain.example');
     if (name === 'site') {
       const source = html.value.replace(/\r\n?/g, '\n');
@@ -221,6 +243,7 @@
     node.append(head, pre);
     rows.push({ name, button, pre });
     button.addEventListener('click', async () => {
+      if (button.disabled) return;
       if (commands[name].includes('__DOMAIN__') && !domainName()) {
         domainError.textContent = 'Введите свой действующий домен.';
         domain.focus();
@@ -253,12 +276,22 @@
     }
     for (const { name, button, pre } of rows) {
       button.textContent = 'Копировать';
-      pre.textContent = command(name);
+      const preview = command(name);
+      if (name === 'firewall-short') {
+        const invalid = !preview;
+        button.disabled = invalid;
+        pre.hidden = invalid;
+        firewallPortsError.hidden = !invalid;
+        firewallPortsError.textContent = invalid ? 'Укажите порты от 1 до 65535. Пример: 52211, 8443/udp.' : '';
+        firewallPorts.setAttribute('aria-invalid', String(invalid));
+      }
+      pre.textContent = preview;
     }
   }
 
   domain.addEventListener('input', render);
   html.addEventListener('input', render);
+  firewallPorts.addEventListener('input', render);
   render();
 </script>
 </body>
